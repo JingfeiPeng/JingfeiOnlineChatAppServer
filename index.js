@@ -27,11 +27,10 @@ io.on('connection',(socket)=>{
         // to let everyone else in the room know the user has joined
         socket.broadcast.to(user.room).emit('message',{user:'admin', text: `${user.name} has joined`}) 
 
-        io.to(user.room).emit('roomData', {room: user.room}, {users: getUsersInRoom(user.room)});
-
         socket.join(user.room);
+        io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
 
-        callback();
+        callback({users: getUsersInRoom(user.room)});
     });
 
     socket.on('sendMessage', (message, callback) => {
@@ -42,6 +41,7 @@ io.on('connection',(socket)=>{
         }
 
         io.to(user.room).emit('message', {user:user.name, text: message});
+        console.log(user.room)
         io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
         callback(); // good practice to always call the callback
     })
@@ -49,6 +49,7 @@ io.on('connection',(socket)=>{
         const user = removeUser(socket.id);
         if (user){
             io.to(user.room).emit('message',{user:"admin", text:`${user.name} has left.`})
+            io.to(user.room).emit('roomData', {room: user.room, users: getUsersInRoom(user.room)})
         }
     })
 })
